@@ -11,7 +11,7 @@ setwd("~/SafeCity")
 # Load data ---------------------------------------------------------------
 
 
-safecity_raw <- read.csv("clean_reports.csv", stringsAsFactors = F)
+safecity_raw <- read.csv("https://www.dropbox.com/s/eesua704mi9wg62/clean_reports.csv?dl=1", stringsAsFactors = F)
 
 
 # Process and filter raw data ---------------------------------------------
