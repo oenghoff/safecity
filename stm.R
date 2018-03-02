@@ -5,8 +5,6 @@ library(tidyverse)
 library(magrittr)
 library(stm)
 
-setwd("~/SafeCity")
-
 
 # Load data ---------------------------------------------------------------
 
@@ -16,12 +14,16 @@ safecity_raw <- read.csv("https://www.dropbox.com/s/eesua704mi9wg62/clean_report
 
 # Process and filter raw data ---------------------------------------------
 
+# TODO: Convert category list to dummy variables
 
-safecity_raw$description %<>%
-  iconv("UTF-8", "ASCII")                 # Remove weird characters
-
-safecity <-
+safecity <-                               # Remove weird characters and duplicates
   safecity_raw %>%
+  mutate(description = iconv(description, "UTF-8", "ASCII") ) %>%
+  filter(!duplicated(description))
+
+# TODO: Remove near duplicates
+
+safecity %<>%
   filter(nchar(description) > 60) %>%     # Min. 60 characters (= ~10 words)
   group_by(categories) %>%
   filter(n() > 50) %>%                    # Min. 50 in category
@@ -46,7 +48,11 @@ processed <- textProcessor(documents = safecity$description,
                            onlycharacter = T)
 
 prepped <- with(processed,
-                prepDocuments(documents, vocab, meta))
+                prepDocuments(documents,
+                              vocab,
+                              meta,
+                              lower.thresh = 1,
+                              upper.thresh = Inf))
 
 documents <- prepped$documents
 vocab <- prepped$vocab
@@ -133,3 +139,10 @@ catprops %>%
   data_frame(category = catprops$category,
              top_topic = .,
              top_topic_label = model.labels[.])
+
+# DEMO: Covariate effects
+fx <- estimateEffect(formula = 1:10 ~ categories,
+                     stmobj = model,
+                     metadata = meta)
+
+plot(fx, "categories", model, topics = c(1), method = "pointestimate")
